@@ -1,0 +1,39 @@
+{
+  "name": "project-2025",
+  "version": "1.0.0",
+  "description": "This website is educational website for VLSI domain.",
+  "main": "server.js",
+  "scripts": {
+    "server": "nodemon backend/server.js"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhishekjoshi001/E-Learning-website.git"
+  },
+  "author": "Abhishek A Joshi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Abhishekjoshi001/E-Learning-website/issues"
+  },
+  "homepage": "https://github.com/Abhishekjoshi001/E-Learning-website#readme",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.3",
+    "multer": "^1.4.5-lts.2",
+    "nodemon": "^3.1.4",
+    "passport": "^0.7.0",
+    "passport-google-oauth2": "^0.2.0",
+    "passport-google-oauth20": "^2.0.0",
+    "react-router-dom": "^6.27.0",
+    "toastify": "^2.0.1"
+  }
+}
