@@ -35,5 +35,8 @@
     "passport-google-oauth20": "^2.0.0",
     "react-router-dom": "^6.27.0",
     "toastify": "^2.0.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   }
 }
