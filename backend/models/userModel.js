@@ -31,8 +31,8 @@ const userSchema = new Schema({
      type: String 
   },
   role: {
-    type: Number,
-    default: 0,
+    type: String,
+    default: ""
   }
 });
 

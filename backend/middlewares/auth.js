@@ -38,4 +38,30 @@ export const auth = async (req, res, next) => {
   }
 };
 
-export default auth;
+//Middleware to check if the used=r in admin
+
+export const instructor = (req, res, next) => {
+  if (req.user && req.user.role === 'instructor') {
+    next();
+  } else {
+    res.status(403).json({
+      success: false,
+      message: 'Not authorized as an instructor'
+    });
+  }
+};
+
+
+ //Middleware to check if the user is an admin
+ //Must be used after the protect middleware
+
+export const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({
+      success: false,
+      message: 'Not authorized as an admin'
+    });
+  }
+};

@@ -1,0 +1,45 @@
+/backend
+  /controllers
+    authController.js       (existing)
+    userController.js       (existing)
+    videoController.js      (new)
+    commentController.js    (new)
+    noteController.js       (new)
+    progressController.js   (new)
+  
+  /models
+    userModel.js            (existing)
+    videoModel.js           (new)
+    commentModel.js         (new)
+    noteModel.js            (new)
+    progressModel.js        (new)
+  
+  /routes
+    authRoutes.js           (existing)
+    userRoutes.js           (existing)
+    videoRoutes.js          (new)
+    commentRoutes.js        (new)
+    noteRoutes.js           (new)
+    progressRoutes.js       (new)
+  
+  /middlewares
+    auth.js                 (existing)
+    videoAccess.js          (new)
+  
+  /services
+    storageService/
+      index.js              (new)
+      wasabiStorage.js      (new)
+    streamingService/
+      index.js              (new)
+      hlsService.js         (new)
+  
+  /utils
+    generateToken.js        (existing)
+    videoProcessing.js      (new)
+  
+  /config
+    wasabiConfig.js         (new)
+    dbConfig.js             (existing as connectdb.js)
+
+  server.js                 (existing)

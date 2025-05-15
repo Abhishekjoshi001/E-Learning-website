@@ -58,10 +58,10 @@ const videoSchema = new mongoose.Schema({
       }
 });
 
-videoSchema.pre('save',(next)=>{
+videoSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const Video = model('Video', videoSchema);
+const Video = mongoose.model('Video', videoSchema);
 export default Video;

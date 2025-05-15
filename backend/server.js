@@ -1,14 +1,19 @@
 import express from "express";
 import dotenv from "dotenv";
-import connectToMongodb from "./db/connectdb.js";
+import connectToMongodb from "./config/connectdb.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import videoRoutes from "./routes/videoRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 import passport from "passport";
 import session from 'express-session';
 import "./controllers/googleAuthController.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import "./middlewares/passportConfig.js";
+import "./config/passportConfig.js";
+import morgan from "morgan";
+import helmet from "helmet";
+import { apiLimiter } from "./middlewares/apiLimiter.js"
 
 
 const PORT = process.env.PORT || 8000;
@@ -21,8 +26,11 @@ app.use(cors({
   origin: "http://localhost:5173", 
   credentials: true,
 }));
+app.use(helmet()); // Security headers
 app.use(express.json()); // Parsing JSON
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies
+app.use(morgan('dev')); // Logging
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -36,9 +44,12 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use('/api', apiLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/courses", courseRoutes);
 
 // app.use("/uploads", express.static("uploads"));
 
