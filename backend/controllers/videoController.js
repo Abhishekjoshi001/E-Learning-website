@@ -2,7 +2,7 @@ import Video from "../models/videoModel.js";
 import Course from "../models/courseModel.js";
 import mongoose from "mongoose";
 import cloudStorage from "../services/storageServices/index.js";
-
+import Purchase from '../models/purchaseModel.js';
 //Generate a pre-signed URL for direct video upload
 
 export const getUploadUrl = async (req, res) => {
@@ -256,5 +256,42 @@ export const deleteVideo = async(req,res)=>{
           error: error.message
         });
     }
+};
+
+
+export const streamVideo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const userId = req.user.id;
+
+    // Get video and course info
+    const video = await Video.findById(videoId).populate('courseId');
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    const course = video.courseId;
+
+    // Check if course is free or user has purchased it
+    if (!course.isFree && course.price > 0) {
+      const purchase = await Purchase.findOne({
+        userId,
+        courseId: course._id,
+        status: 'completed'
+      });
+
+      if (!purchase) {
+        return res.status(403).json({ 
+          message: 'Access denied. Please purchase the course first.' 
+        });
+      }
+    }
+
+    // Your existing video streaming logic here
+    // ... rest of your streaming code
+  } catch (error) {
+    console.error('Video streaming error:', error);
+    res.status(500).json({ message: 'Failed to stream video' });
+  }
 };
     

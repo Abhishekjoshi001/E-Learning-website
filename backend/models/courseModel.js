@@ -54,6 +54,19 @@ const courseSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  price: {
+    type: Number,
+    required: true,
+    default: 0 // 0 means free course
+  },
+  currency: {
+    type: String,
+    default: 'RS'
+  },
+  isFree: {
+    type: Boolean,
+    default: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -64,7 +77,7 @@ const courseSchema = new mongoose.Schema({
   }
 });
 
-courseSchema.pre('save', function(next) {
+courseSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

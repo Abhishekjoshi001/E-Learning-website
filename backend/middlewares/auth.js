@@ -41,7 +41,7 @@ export const auth = async (req, res, next) => {
 //Middleware to check if the used=r in admin
 
 export const instructor = (req, res, next) => {
-  if (req.user && req.user.role === 'instructor') {
+  if (req.user && req.user.role === 'instructor' || req.user.role === 'admin') {
     next();
   } else {
     res.status(403).json({

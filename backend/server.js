@@ -14,12 +14,13 @@ import "./config/passportConfig.js";
 import morgan from "morgan";
 import helmet from "helmet";
 import { apiLimiter } from "./middlewares/apiLimiter.js"
+// import paymentRoutes from './routes/paymentRoutes.js';
 
+dotenv.config();
 
 const PORT = process.env.PORT || 8000;
 const app = express();
 
-dotenv.config();
 
 
 app.use(cors({
@@ -50,6 +51,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/courses", courseRoutes);
+// app.use('/api/payment', paymentRoutes);
 
 // app.use("/uploads", express.static("uploads"));
 

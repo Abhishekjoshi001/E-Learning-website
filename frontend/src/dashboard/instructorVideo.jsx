@@ -143,7 +143,7 @@ const VideoUploadPage = () => {
     
     try {
       // Step 1: Get pre-signed upload URL
-      const urlResponse = await axios.post(API.UPLOAD_URL, {
+      const urlResponse = await axios.put(API.UPLOAD_URL, {
         contentType: videoFile.type,
         filename: videoFile.name
       }, getAuthHeaders());
