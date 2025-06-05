@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Mail, Phone, UserPlus, LogIn, LogOut, Edit } from 'lucide-react';
 import './authPage.css';
 
-const AuthApp = () => {
+const AuthApp = ({ onLogin }) => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState('login');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,8 @@ const AuthApp = () => {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
+        // If user is already authenticated, redirect to home
+        navigate('/');
       }
     } catch (error) {
       console.log('Not authenticated');
@@ -87,7 +91,17 @@ const AuthApp = () => {
         setSuccessMessage(data.message);
         setUser(data.user);
         setLoginForm({ username: '', password: '' });
-        setCurrentView('dashboard');
+        
+        // Call the parent component's login handler
+        if (onLogin) {
+          onLogin(data.user);
+        }
+        
+        // Navigate to home page after successful login
+        setTimeout(() => {
+          navigate('/');
+        }, 1000); // Small delay to show success message
+        
       } else {
         setErrors({ general: data.error });
       }
@@ -144,7 +158,17 @@ const AuthApp = () => {
           phonenumber: '',
           email: ''
         });
-        setCurrentView('dashboard');
+        
+        // Call the parent component's login handler
+        if (onLogin) {
+          onLogin(data.user);
+        }
+        
+        // Navigate to home page after successful registration
+        setTimeout(() => {
+          navigate('/');
+        }, 1000); // Small delay to show success message
+        
       } else {
         setErrors({ general: data.error });
       }
@@ -155,60 +179,24 @@ const AuthApp = () => {
     }
   };
 
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:8000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        setUser(null);
-        setCurrentView('login');
-        setSuccessMessage('Logged out successfully');
-      }
-    } catch (error) {
-      setErrors({ general: 'Logout failed. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
-    setSuccessMessage('');
-
-    try {
-      const response = await fetch('http://localhost:8000/api/user/updateprofile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updateForm),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccessMessage('Profile updated successfully');
-        setUser({ ...user, ...updateForm });
-      } else {
-        setErrors({ general: data.error });
-      }
-    } catch (error) {
-      setErrors({ general: 'Network error. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleLogin = () => {
+    // Store the intended redirect URL before Google OAuth
+    sessionStorage.setItem('redirectAfterAuth', '/');
     window.location.href = 'http://localhost:8000/api/auth/google';
   };
+
+  // Handle Google OAuth callback (if needed)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth');
+    
+    if (authSuccess === 'success') {
+      const redirectUrl = sessionStorage.getItem('redirectAfterAuth') || '/';
+      sessionStorage.removeItem('redirectAfterAuth');
+      navigate(redirectUrl);
+    }
+  }, [navigate]);
 
   const renderLoginForm = () => (
     <div className="auth-container">
@@ -475,184 +463,8 @@ const AuthApp = () => {
     </div>
   );
 
-  const renderDashboard = () => (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="dashboard-nav">
-          <div className="user-info">
-            <div className="user-avatar">
-              {user?.fullname?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="user-details">
-              <h2>Welcome, {user?.fullname || 'User'}!</h2>
-              <p>Manage your account settings</p>
-            </div>
-          </div>
-          <button 
-            onClick={handleLogout} 
-            className="logout-btn"
-            disabled={loading}
-          >
-            <LogOut size={20} />
-            <span>{loading ? 'Logging out...' : 'Logout'}</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="dashboard-content">
-        <div className="profile-card">
-          <div className="profile-header">
-            <h3>Profile Information</h3>
-            <button 
-              type="button" 
-              className="edit-btn"
-              onClick={() => setCurrentView('editProfile')}
-            >
-              <Edit size={16} />
-              <span>Edit Profile</span>
-            </button>
-          </div>
-          
-          <div className="profile-grid">
-            <div className="profile-section">
-              <div className="profile-field">
-                <label>Full Name</label>
-                <p>{user?.fullname}</p>
-              </div>
-              <div className="profile-field">
-                <label>Username</label>
-                <p>{user?.username}</p>
-              </div>
-            </div>
-            <div className="profile-section">
-              <div className="profile-field">
-                <label>Email</label>
-                <p>{user?.email}</p>
-              </div>
-              <div className="profile-field">
-                <label>Phone</label>
-                <p>{user?.phone || user?.phonenumber}</p>
-              </div>
-            </div>
-          </div>
-          
-          {user?.role && (
-            <div className="profile-field">
-              <label>Role</label>
-              <p>{user?.role}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderEditProfile = () => (
-    <div className="auth-container">
-      <div className="auth-card register-card">
-        <div className="auth-header">
-          <Edit className="auth-icon" />
-          <h2 className="auth-title">Edit Profile</h2>
-          <p className="auth-subtitle">Update your information</p>
-        </div>
-
-        {errors.general && (
-          <div className="error-message">
-            {errors.general}
-          </div>
-        )}
-        {successMessage && (
-          <div className="success-message">
-            {successMessage}
-          </div>
-        )}
-
-        <form onSubmit={handleUpdateProfile} className="auth-form">
-          <div className="form-grid">
-            <div className="form-group">
-              <div className="input-wrapper">
-                <User className="input-icon" />
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={updateForm.fullname}
-                  onChange={(e) => setUpdateForm({ ...updateForm, fullname: e.target.value })}
-                  className={`form-input ${errors.fullname ? 'error' : ''}`}
-                />
-              </div>
-              {errors.fullname && <p className="field-error">{errors.fullname}</p>}
-            </div>
-
-            <div className="form-group">
-              <div className="input-wrapper">
-                <User className="input-icon" />
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={updateForm.username}
-                  onChange={(e) => setUpdateForm({ ...updateForm, username: e.target.value })}
-                  className={`form-input ${errors.username ? 'error' : ''}`}
-                />
-              </div>
-              {errors.username && <p className="field-error">{errors.username}</p>}
-            </div>
-
-            <div className="form-group">
-              <div className="input-wrapper">
-                <Mail className="input-icon" />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={updateForm.email}
-                  onChange={(e) => setUpdateForm({ ...updateForm, email: e.target.value })}
-                  className={`form-input ${errors.email ? 'error' : ''}`}
-                />
-              </div>
-              {errors.email && <p className="field-error">{errors.email}</p>}
-            </div>
-
-            <div className="form-group">
-              <div className="input-wrapper">
-                <Phone className="input-icon" />
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  value={updateForm.phonenumber}
-                  onChange={(e) => setUpdateForm({ ...updateForm, phonenumber: e.target.value })}
-                  className={`form-input ${errors.phonenumber ? 'error' : ''}`}
-                />
-              </div>
-              {errors.phonenumber && <p className="field-error">{errors.phonenumber}</p>}
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              onClick={() => setCurrentView('dashboard')}
-              className="cancel-btn"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={loading}
-            >
-              {loading ? 'Updating...' : 'Update Profile'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
   // Render based on current view and authentication status
-  if (user && currentView === 'dashboard') {
-    return renderDashboard();
-  } else if (user && currentView === 'editProfile') {
-    return renderEditProfile();
-  } else if (currentView === 'register') {
+  if (currentView === 'register') {
     return renderRegisterForm();
   } else {
     return renderLoginForm();
