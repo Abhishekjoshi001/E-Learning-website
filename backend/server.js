@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import notesRoutes from "./routes/notesRoutes.js"
 import passport from "passport";
 import session from 'express-session';
 import "./controllers/googleAuthController.js";
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/notes", notesRoutes);
 // app.use('/api/payment', paymentRoutes);
 
 // app.use("/uploads", express.static("uploads"));

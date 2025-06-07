@@ -18,6 +18,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthApp />} />
         <Route path="/viewCourse" element={<ViewCourse />} />
         <Route path="/account" element={<div>Account Page</div>} />
         <Route path="/about" element={<div>About Page</div>} />
