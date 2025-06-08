@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, Mail, Phone, UserPlus, LogIn, LogOut, Edit } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Mail, Phone, UserPlus, LogIn } from 'lucide-react';
 import './authPage.css';
+import { useAuth } from '../context/AuthContext';
 
-const AuthApp = ({ onLogin }) => {
+const AuthApp = () => {
   const navigate = useNavigate();
+  const { login, isAuth, loading } = useAuth();
   const [currentView, setCurrentView] = useState('login');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,52 +27,43 @@ const AuthApp = ({ onLogin }) => {
     email: ''
   });
 
-  const [updateForm, setUpdateForm] = useState({
-    fullname: '',
-    username: '',
-    phonenumber: '',
-    email: ''
-  });
-
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Check if user is already logged in on component mount
+  // Redirect if already authenticated
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  // Update form when user data changes
-  useEffect(() => {
-    if (user) {
-      setUpdateForm({
-        fullname: user.fullname || '',
-        username: user.username || '',
-        phonenumber: user.phone || user.phonenumber || '',
-        email: user.email || ''
-      });
+    if (!loading && isAuth) {
+      console.log("User is authenticated, redirecting to home");
+      navigate('/');
     }
-  }, [user]);
+  }, [isAuth, loading, navigate]);
 
-  const checkAuthStatus = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/auth/Glogin', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        // If user is already authenticated, redirect to home
-        navigate('/');
+  // Handle Google OAuth callback
+  useEffect(() => {
+    const handleGoogleCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const authSuccess = urlParams.get('auth');
+      
+      if (authSuccess === 'success') {
+        console.log("Google OAuth success detected");
+        
+        // Clean the URL immediately
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Wait for the auth context to update
+        setTimeout(() => {
+          // Force a check of auth status
+          window.location.reload();
+        }, 500);
       }
-    } catch (error) {
-      console.log('Not authenticated');
-    }
-  };
+    };
+
+    handleGoogleCallback();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setFormLoading(true);
     setErrors({});
     setSuccessMessage('');
 
@@ -89,32 +81,32 @@ const AuthApp = ({ onLogin }) => {
 
       if (response.ok) {
         setSuccessMessage(data.message);
-        setUser(data.user);
         setLoginForm({ username: '', password: '' });
         
-        // Call the parent component's login handler
-        if (onLogin) {
-          onLogin(data.user);
-        }
+        console.log("Login successful, user data:", data.user);
+        
+        // Use the login function from useAuth hook to update global state
+        login(data.user);
         
         // Navigate to home page after successful login
         setTimeout(() => {
           navigate('/');
-        }, 1000); // Small delay to show success message
+        }, 1000);
         
       } else {
         setErrors({ general: data.error });
       }
     } catch (error) {
+      console.error("Login error:", error);
       setErrors({ general: 'Network error. Please try again.' });
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setFormLoading(true);
     setErrors({});
     setSuccessMessage('');
 
@@ -131,7 +123,7 @@ const AuthApp = ({ onLogin }) => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setLoading(false);
+      setFormLoading(false);
       return;
     }
 
@@ -149,7 +141,6 @@ const AuthApp = ({ onLogin }) => {
 
       if (response.ok) {
         setSuccessMessage(data.message);
-        setUser(data.user);
         setRegisterForm({
           fullname: '',
           username: '',
@@ -159,26 +150,44 @@ const AuthApp = ({ onLogin }) => {
           email: ''
         });
         
-        // Call the parent component's login handler
-        if (onLogin) {
-          onLogin(data.user);
-        }
+        console.log("Registration successful, user data:", data.user);
         
-        // Navigate to home page after successful registration
-        setTimeout(() => {
-          navigate('/');
-        }, 1000); // Small delay to show success message
+        // If user data is returned, use it to login
+        if (data.user) {
+          login(data.user);
+          setTimeout(() => {
+            navigate('/');
+          }, 1000);
+        } else {
+          // If no user data, try to get it from server
+          setTimeout(async () => {
+            try {
+              const authResponse = await fetch('http://localhost:8000/api/auth/Glogin', {
+                credentials: 'include'
+              });
+              if (authResponse.ok) {
+                const authData = await authResponse.json();
+                if (authData.user) {
+                  login(authData.user);
+                  navigate('/');
+                }
+              }
+            } catch (error) {
+              console.error("Error getting user data after registration:", error);
+            }
+          }, 500);
+        }
         
       } else {
         setErrors({ general: data.error });
       }
     } catch (error) {
+      console.error("Registration error:", error);
       setErrors({ general: 'Network error. Please try again.' });
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
-
 
   const handleGoogleLogin = () => {
     // Store the intended redirect URL before Google OAuth
@@ -186,17 +195,18 @@ const AuthApp = ({ onLogin }) => {
     window.location.href = 'http://localhost:8000/api/auth/google';
   };
 
-  // Handle Google OAuth callback (if needed)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const authSuccess = urlParams.get('auth');
-    
-    if (authSuccess === 'success') {
-      const redirectUrl = sessionStorage.getItem('redirectAfterAuth') || '/';
-      sessionStorage.removeItem('redirectAfterAuth');
-      navigate(redirectUrl);
-    }
-  }, [navigate]);
+  // Show loading while checking auth status
+  if (loading) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h2 className="auth-title">Loading...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderLoginForm = () => (
     <div className="auth-container">
@@ -257,9 +267,9 @@ const AuthApp = ({ onLogin }) => {
           <button
             type="submit"
             className="submit-btn"
-            disabled={loading}
+            disabled={formLoading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {formLoading ? 'Signing in...' : 'Sign In'}
           </button>
 
           <div className="divider">
@@ -271,6 +281,7 @@ const AuthApp = ({ onLogin }) => {
             type="button"
             onClick={handleGoogleLogin}
             className="google-btn"
+            disabled={formLoading}
           >
             <svg className="google-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -422,9 +433,9 @@ const AuthApp = ({ onLogin }) => {
           <button
             type="submit"
             className="submit-btn"
-            disabled={loading}
+            disabled={formLoading}
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {formLoading ? 'Creating Account...' : 'Create Account'}
           </button>
 
           <div className="divider">
@@ -436,6 +447,7 @@ const AuthApp = ({ onLogin }) => {
             type="button"
             onClick={handleGoogleLogin}
             className="google-btn"
+            disabled={formLoading}
           >
             <svg className="google-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -463,7 +475,7 @@ const AuthApp = ({ onLogin }) => {
     </div>
   );
 
-  // Render based on current view and authentication status
+  // Render based on current view
   if (currentView === 'register') {
     return renderRegisterForm();
   } else {

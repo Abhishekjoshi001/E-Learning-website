@@ -1,96 +1,114 @@
-import React, { useState, useEffect } from "react";
-import "./header.css";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import "./Header.css";
 
-const Header = ({ onLogout }) => {
-  const [isAuth, setIsAuth] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const Header = () => {
+  const { user, isAuth, logout, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Check authentication status on app load
+  // Debug logging
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      console.log('Checking auth status...');
-      const response = await fetch('http://localhost:8000/api/auth/Glogin', {
-        credentials: 'include'
-      });
-      console.log('Auth response status:', response.status);
-             
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Auth data:', data);
-        setUser(data.user);
-        setIsAuth(true);
-        console.log('User authenticated:', data.user);
-      } else {
-        console.log('User not authenticated');
-        setIsAuth(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.log('Auth check error:', error);
-      setIsAuth(false);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log("Header - isAuth:", isAuth, "user:", user, "loading:", loading);
+  }, [isAuth, user, loading]);
 
   const handleLogout = async () => {
     try {
-      // Call logout API if needed
-      await fetch('http://localhost:8000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-    } catch (error) {
-      console.log('Logout error:', error);
-    } finally {
-      setIsAuth(false);
-      setUser(null);
-      if (onLogout) {
-        onLogout();
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/logout",
+        {},
+        { withCredentials: true }
+      );
+
+      if (response?.data?.success) {
+        console.log(response.data.message || "Logged out successfully");
+      } else {
+        console.log(response?.data?.error || "Logout failed");
       }
-      navigate('/'); // Redirect to home page after logout
+    } catch (error) {
+      console.log("Logout error:", error);
+    } finally {
+      // Always call logout to clear local state
+      logout();
+      navigate("/");
     }
   };
 
-  const handleLogin = (userData) => {
-    console.log('Setting user as authenticated:', userData);
-    setIsAuth(true);
-    setUser(userData);
+  const handleLoginClick = () => {
+    navigate("/auth");
   };
 
-  console.log('Current auth state - isAuth:', isAuth, 'user:', user);
-
+  // Don't render anything while loading
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <header className="header">
+        <nav className="nav">
+          <button onClick={() => navigate("/")} className="logo">
+            E-Learning
+          </button>
+          <ul className="nav-list">
+            <li>
+              <button onClick={() => navigate("/")} className="nav-button">
+                Home
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/courses")} className="nav-button">
+                Courses
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/about")} className="nav-button">
+                About
+              </button>
+            </li>
+            <li>
+              <span className="nav-button">Loading...</span>
+            </li>
+          </ul>
+        </nav>
+      </header>
+    );
   }
 
   return (
-    <header>
-      <nav>
-        <Link to="/" className="logo">E-Learning</Link>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/courses">Courses</Link></li>
-          <li><Link to="/about">About</Link></li>
+    <header className="header">
+      <nav className="nav">
+        <button onClick={() => navigate("/")} className="logo">
+          E-Learning
+        </button>
+        <ul className="nav-list">
+          <li>
+            <button onClick={() => navigate("/")} className="nav-button">
+              Home
+            </button>
+          </li>
+          <li>
+            <button onClick={() => navigate("/courses")} className="nav-button">
+              Courses
+            </button>
+          </li>
+          <li>
+            <button onClick={() => navigate("/about")} className="nav-button">
+              About
+            </button>
+          </li>
           {isAuth ? (
             <>
-              <li><Link to="/account">Account</Link></li>
+        
               <li>
-                <button className="logout-btn" onClick={handleLogout}>
+                <button onClick={handleLogout} className="logout-button">
                   Logout
                 </button>
               </li>
             </>
           ) : (
-            <li><Link to="/login">Login</Link></li>
+            <li>
+              <button onClick={handleLoginClick} className="nav-button">
+                Login
+              </button>
+            </li>
           )}
         </ul>
       </nav>

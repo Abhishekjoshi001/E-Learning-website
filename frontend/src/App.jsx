@@ -7,6 +7,7 @@ import StudentCourse from "./dashboard/userCourses";
 import ViewCourse from "./pages/viewCourse";
 import HomePage from "./pages/home/homePage";
 import AuthApp from "./pages/authPage";
+import About from "./pages/aboutUs/About";
 // import { getUserFromToken } from "../utils/getUserFromToken";
 
 function App() {
@@ -20,7 +21,10 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/viewCourse" element={<ViewCourse />} />
         <Route path="/account" element={<div>Account Page</div>} />
-        <Route path="/about" element={<div>About Page</div>} />
+  
+        <Route path="/auth" element={<AuthApp />} />
+        <Route path="about" element={<About />} />
+        
 
         {/* {user.role === "instructor" ? ( */}
           <>
@@ -29,7 +33,7 @@ function App() {
           </>
         {/* ) : ( */}
           <>
-            <Route path="/courses" element={<StudentCourse />} />
+            {/* <Route path="/courses" element={<StudentCourse />} /> */}
             <Route path="/dashboard/upload" element={<Navigate to="/courses" />} />
           </>
         {/* )} */}
