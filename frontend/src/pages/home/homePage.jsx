@@ -1,5 +1,8 @@
+// src/pages/HomePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -7,8 +10,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch courses from backend
   useEffect(() => {
+    AOS.init({ duration: 1000 });
     fetchCourses();
   }, []);
 
@@ -16,10 +19,8 @@ const HomePage = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get auth token from localStorage or wherever you store it
       const authToken = localStorage.getItem('authToken') || '';
-      
+
       const response = await fetch('http://localhost:8000/api/courses/', {
         headers: {
           'Authorization': authToken,
@@ -41,7 +42,6 @@ const HomePage = () => {
     }
   };
 
-  // Sample instructor data
   const instructors = [
     {
       id: 1,
@@ -63,11 +63,13 @@ const HomePage = () => {
     <div className="homepage">
       {/* Hero Section */}
       <section className="hero-section">
-        <div className="hero-content">
+        <div className="hero-deco chip-1" />
+        <div className="hero-deco chip-2" />
+        <div className="hero-content" data-aos="fade-down">
           <h1>Master VLSI Design</h1>
           <p>
-            Welcome to the premier e-learning platform dedicated to VLSI (Very Large Scale Integration) 
-            education. Learn from industry experts and advance your career in semiconductor design 
+            Welcome to the premier e-learning platform dedicated to VLSI (Very Large Scale Integration)
+            education. Learn from industry experts and advance your career in semiconductor design
             with our comprehensive courses covering digital design, analog circuits, and cutting-edge technologies.
           </p>
           <Link to="/courses" className="cta-button">
@@ -79,13 +81,11 @@ const HomePage = () => {
       {/* Instructors Section */}
       <section className="instructors-section">
         <div className="container">
-          <h2 className="section-title">Meet Our Expert Instructors</h2>
+          <h2 className="section-title" data-aos="fade-up">Meet Our Expert Instructors</h2>
           <div className="instructors-grid">
             {instructors.map(instructor => (
-              <div key={instructor.id} className="instructor-card">
-                <div className="instructor-avatar">
-                  {instructor.avatar}
-                </div>
+              <div key={instructor.id} className="instructor-card" data-aos="fade-up">
+                <div className="instructor-avatar">{instructor.avatar}</div>
                 <h3 className="instructor-name">{instructor.name}</h3>
                 <p className="instructor-role">{instructor.role}</p>
                 <p className="instructor-bio">{instructor.bio}</p>
@@ -98,35 +98,25 @@ const HomePage = () => {
       {/* Courses Section */}
       <section className="courses-section">
         <div className="container">
-          <div className="courses-header">
+          <div className="courses-header" data-aos="fade-up">
             <h2 className="section-title">Featured Courses</h2>
-            <Link to="/courses" className="view-all-btn">
-              View All Courses
-            </Link>
+            <Link to="/courses" className="view-all-btn">View All Courses</Link>
           </div>
-          
+
           {loading ? (
-            <div className="loading-state">
-              <p>Loading courses...</p>
-            </div>
+            <div className="loading-state"><p>Loading courses...</p></div>
           ) : error ? (
             <div className="error-state">
               <p>{error}</p>
-              <button onClick={fetchCourses} className="retry-btn">
-                Try Again
-              </button>
+              <button onClick={fetchCourses} className="retry-btn">Try Again</button>
             </div>
           ) : courses.length === 0 ? (
-            <div className="empty-state">
-              <p>No courses available at the moment.</p>
-            </div>
+            <div className="empty-state"><p>No courses available at the moment.</p></div>
           ) : (
             <div className="courses-grid">
               {courses.slice(0, 4).map(course => (
-                <div key={course.id || course._id} className="course-card">
-                  <div className="course-image">
-                    📚
-                  </div>
+                <div key={course.id || course._id} className="course-card" data-aos="fade-up">
+                  <div className="course-image">📚</div>
                   <div className="course-content">
                     <h3 className="course-title">{course.title || course.name}</h3>
                     <p className="course-description">{course.description}</p>

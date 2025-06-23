@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate ,useLocation} from "react-router-dom";
 import Header from "./components/header/Header";
 import VideoUploadPage from "./dashboard/instructorVideo";
 import InstructorCourse from "./dashboard/instructorCourse";
@@ -8,14 +8,18 @@ import ViewCourse from "./pages/viewCourse";
 import HomePage from "./pages/home/homePage";
 import AuthApp from "./pages/authPage";
 import About from "./pages/aboutUs/About";
+import Footer from "./components/footer/Footer";
+
 // import { getUserFromToken } from "../utils/getUserFromToken";
 
 function App() {
+    const location = useLocation(); 
   // const user = req.user
 
   return (
     <>
       <Header />
+     
 
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -40,6 +44,8 @@ function App() {
 
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
+
+      {location.pathname === "/" && <Footer />}
     </>
   );
 }
